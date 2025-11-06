@@ -1,0 +1,2 @@
+-- SQL queries for KPIs will be implemented later
+-- TODO: Add SQL queries for database approach

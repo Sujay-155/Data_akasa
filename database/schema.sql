@@ -1,0 +1,2 @@
+-- Database schema will be implemented later
+-- TODO: Add MySQL table definitions for database approach
