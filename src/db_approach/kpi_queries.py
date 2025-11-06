@@ -67,8 +67,8 @@ def get_regional_revenue(conn):
 
 
 def get_top_spenders_last_30_days(conn, top_n=10):
-    """KPI 4: Top spenders in last 30 days"""
-    query = f"""
+    """KPI 4: Top spenders in last 30 days (parameterized LIMIT)."""
+    query = """
         SELECT 
             o.mobile_number,
             SUM(o.total_amount) AS total_spend,
@@ -83,9 +83,9 @@ def get_top_spenders_last_30_days(conn, top_n=10):
         )
         GROUP BY o.mobile_number, c.customer_id, c.customer_name, c.region
         ORDER BY total_spend DESC
-        LIMIT {top_n}
+        LIMIT %s
     """
-    return pd.read_sql(query, conn)
+    return pd.read_sql(query, conn, params=[int(top_n)])
 
 
 def calculate_all_kpis(conn, top_n=10):

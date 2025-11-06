@@ -7,6 +7,7 @@ import mysql.connector
 from mysql.connector import Error
 from pathlib import Path
 import sys
+import re
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.config import CONFIG, DB_CONFIG
@@ -15,15 +16,23 @@ from utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 
+def _is_safe_identifier(name: str) -> bool:
+    """Allow only alphanumeric and underscore for identifiers."""
+    return bool(re.fullmatch(r"[A-Za-z0-9_]+", name or ""))
+
+
 def create_database_if_not_exists():
     """Create database if it doesn't exist"""
     try:
         config = DB_CONFIG.copy()
         db_name = config.pop('database')
-        
+        if not _is_safe_identifier(db_name):
+            raise ValueError("Unsafe database name in configuration")
+
         conn = mysql.connector.connect(**config)
         cursor = conn.cursor()
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
+        # Quote identifier to avoid injection and reserved word issues
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}`")
         cursor.close()
         conn.close()
         logger.info(f"Database '{db_name}' ready")
@@ -33,11 +42,19 @@ def create_database_if_not_exists():
 
 
 def get_connection():
-    """Create MySQL database connection"""
+    """Create MySQL database connection and ensure it's established.
+
+    Returns:
+        mysql.connector.connection.MySQLConnection: Active DB connection.
+
+    Raises:
+        Error: If connection cannot be established.
+    """
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        if conn.is_connected():
-            return conn
+        if not conn or not conn.is_connected():
+            raise Error("MySQL connection not established")
+        return conn
     except Error as e:
         logger.error(f"Database connection failed: {e}")
         raise
@@ -133,23 +150,29 @@ def main():
     """Main execution for database loading"""
     try:
         logger.info("Starting database load process")
-        
+
         create_database_if_not_exists()
-        
+
         conn = get_connection()
         logger.info("Connected to MySQL database")
-        
+
         create_tables(conn)
-        
+
         load_customers_to_db(conn, CONFIG['CUSTOMERS_CSV'])
         load_orders_to_db(conn, CONFIG['ORDERS_XML'])
-        
-        conn.close()
+
         logger.info("Database load completed successfully")
-        
+
     except Exception as e:
         logger.error(f"Database load failed: {e}", exc_info=True)
         sys.exit(1)
+    finally:
+        try:
+            if 'conn' in locals() and conn and conn.is_connected():
+                conn.close()
+        except Exception:
+            # Best-effort close
+            pass
 
 
 if __name__ == "__main__":
