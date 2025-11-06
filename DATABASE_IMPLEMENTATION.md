@@ -47,15 +47,6 @@
 - Entry point for database approach
 - Usage: `py run_db_pipeline.py`
 
-## Key Features
-
-✅ **Complete SQL Implementation**: All 4 KPIs implemented using SQL queries
-✅ **Data Integrity**: UPSERT operations prevent duplicates
-✅ **Indexed Tables**: Performance-optimized with indexes on join/filter columns
-✅ **Data Cleaning**: Handles missing values, duplicates, and type conversions
-✅ **Error Handling**: Comprehensive try-except blocks with logging
-✅ **Timezone Support**: MySQL DATETIME for timestamp storage
-✅ **Modular Design**: Separate modules for loading, querying, and orchestration
 
 ## Database Configuration
 
@@ -82,25 +73,3 @@ Database approach creates separate reports:
 - `output/db_regional_revenue.csv`
 - `output/db_top_spenders_last_30_days.csv`
 
-## Comparison: In-Memory vs Database
-
-| Feature | In-Memory | Database |
-|---------|-----------|----------|
-| Data Storage | RAM (DataFrames) | MySQL Tables |
-| Processing | Pandas operations | SQL queries |
-| Scalability | Limited by RAM | Limited by disk/DB |
-| Persistence | Temporary | Permanent |
-| Query Language | Python/Pandas | SQL |
-| Reports Prefix | `kpi_` | `db_` |
-| Speed | Fast for small data | Fast with indexes |
-
-## Next Steps (Optional Enhancements)
-
-- [ ] Add incremental loading (process only new records)
-- [ ] Implement database connection pooling
-- [ ] Add stored procedures for complex KPIs
-- [ ] Create database indexes tuning
-- [ ] Add data validation constraints
-- [ ] Implement database backup/restore
-- [ ] Add transaction management
-- [ ] Create database views for common queries
